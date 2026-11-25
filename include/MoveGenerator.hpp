@@ -15,6 +15,9 @@ private:
     // Check whether coordinates are inside the board
     static bool isInsideBoard(int row, int col);
 
+    // Helper function form sliding pieces (rook, bishop, queen)
+    static void generateSlidingMoves(const Board& board, int row, int col, std::vector<Move>& moves, const std::vector<std::pair<int, int>>& offsets);
+
     // Generate possible pawn moves
     static void generatePawnMoves(const Board& board, int row, int col, std::vector<Move>& moves);
 
