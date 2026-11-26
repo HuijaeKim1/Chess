@@ -147,7 +147,7 @@ void MoveGenerator::generateKnightMoves(const Board& board, int row, int col, st
     }
 }
 
-
+// For rook, bishop, queen
 void MoveGenerator::generateSlidingMoves(const Board& board, int row, int col, std::vector<Move>& moves, const std::vector<std::pair<int, int>>& offsets){
     Piece movingPiece = board.getPiece(row, col);
 
