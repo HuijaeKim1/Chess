@@ -16,6 +16,9 @@ public:
     // Check whether the king is in check
     static bool isInCheck(const Board& board, Color color);
 
+    // Generate moves that do not leave the player's king in check
+    static std::vector<Move> generateLegalMoves(const Board& board);
+
 
 private:
     // Check whether coordinates are inside the board

@@ -400,3 +400,24 @@ bool MoveGenerator::isInCheck(const Board& board, Color color){
     // No matching king found
     return false;
 }
+
+std::vector<Move> MoveGenerator::generateLegalMoves(const Board& board){
+    std::vector<Move> legalMoves;
+
+    Color playerColor = board.getCurrentTurn();
+
+    std::vector<Move> gen = generatePseudoLegalMoves(board);
+    for (const auto& move : gen){
+        Board tempBoard = board;
+
+        tempBoard.makeMove(move);
+
+        // If the king is not checked, it's a legal move
+        if (!isInCheck(tempBoard, playerColor)){
+            legalMoves.push_back(move);
+        }
+
+    }
+
+    return legalMoves;
+}
