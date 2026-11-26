@@ -245,3 +245,141 @@ void MoveGenerator::generateKingMoves(const Board& board, int row, int col, std:
         }
     }
 }
+
+
+bool MoveGenerator::isSquareAttacked(const Board& board, int row, int col, Color attackingColor) {
+    // 1. Check pawn attacks
+    // Ex: If a white pawn is attacking e4, it must come from either d3 or f3. chess rank 3 = array row 5.
+    int pawnRow = row + ((attackingColor == Color::White) ? 1 : -1);
+
+    // Check which diagonal square where an attacking pawn could exist. Ex: e4, it comes from either d3 or f3. see if it is d or f.
+    for (int offset : {-1, 1}){
+        int pawnCol = col + offset;
+        if (isInsideBoard(pawnRow, pawnCol)){
+            Piece retrieve = board.getPiece(pawnRow, pawnCol);
+
+            // White attacks e4, so we must verify that a white pawn is attacking e4
+            if (retrieve.color == attackingColor && retrieve.type == PieceType::Pawn){
+                return true;
+            }
+        }
+    }
+
+    // 2. Check knight attacks
+    const std::array<std::pair<int, int>, 8> knightOffsets = {{
+        {-2, -1}, {-2, 1},
+        {-1, -2}, {-1, 2},
+        {1, -2},  {1, 2},
+        {2, -1},  {2, 1}
+    }};
+
+    for (const auto& offset : knightOffsets){
+        int knightRow = row + offset.first;
+        int knightCol = col + offset.second;
+
+        if (isInsideBoard(knightRow, knightCol)){
+            Piece retrieve = board.getPiece(knightRow, knightCol);
+
+            if (retrieve.color == attackingColor && retrieve.type == PieceType::Knight){
+                return true;
+            }
+        }
+    }
+
+    // 3. Check rook and queen attacks
+    const std::array<std::pair<int, int>, 4> straightOffsets = {{
+        {-1, 0},  // Up
+        {1, 0},   // Down
+        {0, -1},  // Left
+        {0, 1}    // Right
+    }};
+
+    // Search in all four straight directions
+    for (const auto& offset : straightOffsets) {
+        int straightRow = row + offset.first;
+        int straightCol = col + offset.second;
+
+        // Continue searching until we reach the board boundary
+        while (isInsideBoard(straightRow, straightCol)) {
+            Piece retrieve = board.getPiece(straightRow, straightCol);
+
+            // Check if the square contains a piece
+            if (!retrieve.isEmpty()) {
+
+                // Check if the piece is an attacking rook or queen
+                if (retrieve.color == attackingColor && (retrieve.type == PieceType::Rook || retrieve.type == PieceType::Queen)) {
+                    return true;
+                }
+
+                // Any other occupied square blocks the attack
+                break;
+            }
+
+            straightRow += offset.first;
+            straightCol += offset.second;
+        }
+    }
+
+    // 4. Check bishop and queen attacks
+    const std::array<std::pair<int, int>, 4> diagonalOffsets = {{
+        {-1, -1},  
+        {-1, 1},   
+        {1, -1},  
+        {1, 1}    
+    }};
+
+    // Search in all four straight directions
+    for (const auto& offset : diagonalOffsets) {
+        int diagonalRow = row + offset.first;
+        int diagonalCol = col + offset.second;
+
+        // Continue searching until we reach the board boundary
+        while (isInsideBoard(diagonalRow, diagonalCol)) {
+            Piece retrieve = board.getPiece(diagonalRow, diagonalCol);
+
+            // Check if the square contains a piece
+            if (!retrieve.isEmpty()) {
+
+                // Check if the piece is an attacking rook or queen
+                if (retrieve.color == attackingColor && (retrieve.type == PieceType::Bishop || retrieve.type == PieceType::Queen)) {
+                    return true;
+                }
+
+                // Any other occupied square blocks the attack
+                break;
+            }
+
+            diagonalRow += offset.first;
+            diagonalCol += offset.second;
+        }
+    }
+    // 5. Check king attacks
+    const std::array<std::pair<int, int>, 8> kingOffsets = {{
+        {-1, -1},
+        {0, -1},
+        {1, -1},
+        {1, 0},
+        {1, 1},
+        {0, 1},
+        {-1, 1},
+        {-1, 0}
+    }};
+
+    for (const auto& offset : kingOffsets){
+        int kingRow = row + offset.first;
+        int kingCol = col + offset.second;
+
+        if (isInsideBoard(kingRow, kingCol)){
+            Piece retrieve = board.getPiece(kingRow, kingCol);
+
+            if (retrieve.color == attackingColor && retrieve.type == PieceType::King){
+                return true;
+            }
+        }
+    }
+
+
+
+    // No attacking pieces found
+    return false;
+}

@@ -113,3 +113,19 @@ void Board::print() const {
     // Display whose turn it is
     std::cout << "\n" << (currentTurn == Color::White ? "White" : "Black") << " to move.\n";
 }
+
+void Board::switchTurn(){
+    currentTurn = (currentTurn == Color::White) ? Color::Black : Color::White;
+}
+
+void Board::makeMove(const Move& move){
+    // Retrieve the piece that we want to move
+    Piece retrieve = getPiece(move.fromRow, move.fromCol);
+
+    // Move the piece to the destination
+    setPiece(move.toRow, move.toCol, retrieve);
+
+    // Clear the original square
+    setPiece(move.fromRow, move.fromCol, Piece());
+    switchTurn();
+}

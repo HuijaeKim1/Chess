@@ -2,6 +2,7 @@
 
 #include <array>
 #include "Piece.hpp"
+#include "Move.hpp"
 
 class Board {
 private:
@@ -10,6 +11,8 @@ private:
 
     // Keep track of whose turn it is
     Color currentTurn = Color::White;
+
+    void switchTurn();
 
 public:
     Board();
@@ -27,4 +30,6 @@ public:
     Color getCurrentTurn() const;
 
     void print() const;
+
+    void makeMove(const Move& move);
 };

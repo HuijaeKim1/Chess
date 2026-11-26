@@ -7,9 +7,11 @@
 class MoveGenerator {
 public:
     // Generate all pseudo-legal moves for the current player
-    static std::vector<Move> generatePseudoLegalMoves(
-        const Board& board
-    );
+    static std::vector<Move> generatePseudoLegalMoves(const Board& board);
+
+    // Check whether a square is attacked by a specified color
+    static bool isSquareAttacked(const Board& board, int row, int col, Color attackingColor);
+
 
 private:
     // Check whether coordinates are inside the board
