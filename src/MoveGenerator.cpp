@@ -378,8 +378,25 @@ bool MoveGenerator::isSquareAttacked(const Board& board, int row, int col, Color
         }
     }
 
-
-
     // No attacking pieces found
+    return false;
+}
+
+bool MoveGenerator::isInCheck(const Board& board, Color color){
+    Color oppositeColor = ((color == Color::White) ? Color::Black : Color::White);
+
+    for (int row = 0; row < 8; row++){
+        for (int col = 0; col < 8; col++){
+            Piece retrieve = board.getPiece(row, col);
+
+            if (retrieve.color == color && retrieve.type == PieceType::King){
+
+                // Check if the target king is attacked by the oppositeColor piece
+                return isSquareAttacked(board, row, col, oppositeColor);
+            }
+        }
+    }
+
+    // No matching king found
     return false;
 }

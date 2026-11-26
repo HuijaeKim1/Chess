@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <vector>
 #include "Board.hpp"
 #include "Move.hpp"
@@ -11,6 +12,9 @@ public:
 
     // Check whether a square is attacked by a specified color
     static bool isSquareAttacked(const Board& board, int row, int col, Color attackingColor);
+
+    // Check whether the king is in check
+    static bool isInCheck(const Board& board, Color color);
 
 
 private:
