@@ -244,6 +244,52 @@ void MoveGenerator::generateKingMoves(const Board& board, int row, int col, std:
             }
         }
     }
+
+    // King castling moves
+    int kingStartRow = ((king.color == Color::White) ? 7 : 0);
+    Color oppositeColor = ((king.color == Color::White) ? Color::Black : Color::White);
+
+    // If the king is not in its original square castling is not permitted
+    if (kingStartRow != row || col != 4){
+        return;
+    }
+
+    // If the king is in check, castling is not permitted
+    if (isInCheck(board, king.color)){
+        return;
+    }
+
+    // Kingside castling
+    if (board.canCastleKingside(king.color)){
+        Piece rook = board.getPiece(kingStartRow, 7);
+
+        // Castling requirements: rook of the same color, column 5,6 must be empty and not being attacked
+        if (rook.type == PieceType::Rook && rook.color == king.color && 
+            board.getPiece(kingStartRow, 5).isEmpty() && board.getPiece(kingStartRow, 6).isEmpty() &&
+            !isSquareAttacked(board, kingStartRow, 5, oppositeColor) &&
+            !isSquareAttacked(board, kingStartRow, 6, oppositeColor)){
+                
+            // Generate King side Castling
+            moves.emplace_back(row, col, row, 6);
+        }
+    }
+
+    // Queenside castling
+    if (board.canCastleQueenside(king.color)){
+        Piece rook = board.getPiece(kingStartRow, 0);
+
+        // Castling requirements: rook of the same color, column 1,2,3 must be empty and 2,3 not being attacked
+        if (rook.type == PieceType::Rook && rook.color == king.color && 
+            board.getPiece(kingStartRow, 1).isEmpty() && board.getPiece(kingStartRow, 2).isEmpty() &&
+            board.getPiece(kingStartRow, 3).isEmpty() && 
+            !isSquareAttacked(board, kingStartRow, 2, oppositeColor) &&
+            !isSquareAttacked(board, kingStartRow, 3, oppositeColor)){
+                
+            // Generate King side Castling
+            moves.emplace_back(row, col, row, 2);
+        }
+    }
+    
 }
 
 
@@ -382,6 +428,7 @@ bool MoveGenerator::isSquareAttacked(const Board& board, int row, int col, Color
     return false;
 }
 
+// See if the king of color (the parameter) is in check
 bool MoveGenerator::isInCheck(const Board& board, Color color){
     Color oppositeColor = ((color == Color::White) ? Color::Black : Color::White);
 

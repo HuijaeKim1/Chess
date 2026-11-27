@@ -14,6 +14,13 @@ private:
 
     void switchTurn();
 
+    // Track castling rights for both players
+    bool whiteCanCastleKingside = true;
+    bool whiteCanCastleQueenside = true;
+
+    bool blackCanCastleKingside = true;
+    bool blackCanCastleQueenside = true;
+
 public:
     Board();
 
@@ -32,4 +39,7 @@ public:
     void print() const;
 
     void makeMove(const Move& move);
+
+    bool canCastleKingside(Color color) const;
+    bool canCastleQueenside(Color color) const;
 };
