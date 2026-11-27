@@ -24,6 +24,8 @@ private:
     int enPassantRow = -1;
     int enPassantCol = -1;
 
+    int halfMoveCounter = 0;
+
 public:
     Board();
 
@@ -48,4 +50,6 @@ public:
 
     int getEnPassantRow() const;
     int getEnPassantCol() const;
+
+    int getHalfMoveCounter() const;
 };

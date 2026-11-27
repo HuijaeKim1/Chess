@@ -21,6 +21,8 @@ void Board::clear() {
 
     enPassantRow = -1;
     enPassantCol = -1;
+
+    halfMoveCounter = 0;
 }
 
 void Board::reset() {
@@ -140,6 +142,14 @@ void Board::makeMove(const Move& move){
     Piece retrieve = getPiece(move.fromRow, move.fromCol);
 
     Piece captured = getPiece(move.toRow, move.toCol);
+
+    // Reset the 50 and 75 move counter if a pawn moves or any piece is captured
+    if (retrieve.type == PieceType::Pawn || !captured.isEmpty()){
+        halfMoveCounter = 0;
+    }
+    else{
+        halfMoveCounter++;
+    }
 
     // Handle en passant capture
     if (retrieve.type == PieceType::Pawn && move.fromCol != move.toCol && move.toRow == enPassantRow
@@ -273,4 +283,8 @@ int Board::getEnPassantRow() const{
 
 int Board::getEnPassantCol() const{
     return enPassantCol;
+}
+
+int Board::getHalfMoveCounter() const{
+    return halfMoveCounter;
 }

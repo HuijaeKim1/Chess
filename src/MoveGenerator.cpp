@@ -533,3 +533,62 @@ bool MoveGenerator::isStalemate(const Board& board){
     // Not in stalemate
     return false;
 }
+
+// Draw if: king vs king, king+bishop vs king, king+knight vs king, king+bishop vs king+bishop (on same colored squares)
+bool MoveGenerator::isInsufficientMaterial(const Board& board){
+    int bishopCount = 0;
+    int knightCount = 0;
+
+    // To check the last condition
+    bool hasLightSquareBishop = false;
+    bool hasDarkSquareBishop = false;
+
+    // Traverse all 64 squares
+    for (int row = 0; row < 8; row++){
+        for (int col = 0; col < 8; col++){
+            Piece piece = board.getPiece(row, col);
+
+            // Count bishops
+            if (piece.type == PieceType::Bishop){
+                bishopCount++;
+
+                // (row + col) % 2 returns 0 if it's a light square
+                if ((row + col) % 2 == 0){
+                    hasLightSquareBishop = true;
+                }
+                else{
+                    hasDarkSquareBishop = true;
+                }
+            }
+            // Count knights
+            else if (piece.type == PieceType::Knight){
+                knightCount++;
+            }
+            // Reject insufficient material if any pawn, rook, or queen exists
+            else if (piece.type == PieceType::Pawn || piece.type == PieceType::Rook || piece.type == PieceType::Queen){
+                return false;
+            }
+        }
+    }
+
+    if (bishopCount + knightCount < 2){
+        return true;
+    }
+
+    // Check for bishops on same-colored squares
+    if (knightCount == 0 && !(hasLightSquareBishop && hasDarkSquareBishop)){
+        return true;
+    }
+
+    return false;
+}
+
+// Check whether the 50-move threshold has been reached
+bool MoveGenerator::isFiftyMoveRule(const Board& board){
+    return board.getHalfMoveCounter() >= 100;
+}
+
+// Check whether the 75-move threshold has been reached
+bool MoveGenerator::isSeventyFiveMoveRule(const Board& board){
+    return board.getHalfMoveCounter() >= 150;
+}

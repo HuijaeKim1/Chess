@@ -23,6 +23,12 @@ public:
     static bool isCheckmate(const Board& board);
     static bool isStalemate(const Board& board);
 
+    // 1st Draw condition
+    static bool isInsufficientMaterial(const Board& board);
+
+    static bool isFiftyMoveRule(const Board& board);
+    static bool isSeventyFiveMoveRule(const Board& board);
+
 
 private:
     // Check whether coordinates are inside the board
