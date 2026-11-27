@@ -74,11 +74,29 @@ void MoveGenerator::generatePawnMoves(const Board& board, int row, int col, std:
 
     int nextRow = row + direction;
 
-    // Single-square forward movement
-    if (isInsideBoard(nextRow, col) &&
-        board.getPiece(nextRow, col).isEmpty()) {
+    int promotionRow = ((pawn.color == Color::White) ? 0 : 7);
 
-        moves.emplace_back(row, col, nextRow, col);
+    const std::array<PieceType, 4> promotionTypes = {
+        PieceType::Queen,
+        PieceType::Rook,
+        PieceType::Bishop,
+        PieceType::Knight
+    };
+
+    // Single-square forward movement
+    if (isInsideBoard(nextRow, col) && board.getPiece(nextRow, col).isEmpty()) {
+
+        // Check if the pawn reaches the promotion row
+        if (nextRow == promotionRow){
+            for (const auto& promotion : promotionTypes){
+
+                // Generate promotion moves
+                moves.emplace_back(row, col, promotionRow, col, promotion);
+            }
+        }
+        else {
+            moves.emplace_back(row, col, nextRow, col);
+        }
 
         // Double-square movement from the starting row
         if (row == startRow) {
@@ -101,11 +119,16 @@ void MoveGenerator::generatePawnMoves(const Board& board, int row, int col, std:
             Piece target = board.getPiece(nextRow, nextCol);
 
             // Capture only occupied enemy squares, excluding kings
-            if (!target.isEmpty() &&
-                target.color != pawn.color &&
-                target.type != PieceType::King) {
-
-                moves.emplace_back(row, col, nextRow, nextCol);
+            if (!target.isEmpty() && target.color != pawn.color && target.type != PieceType::King) {
+                if (nextRow == promotionRow){
+                    for (const auto& promotion : promotionTypes){
+                        moves.emplace_back(row, col, promotionRow, nextCol, promotion);
+                    }
+                }
+                else {
+                    moves.emplace_back(row, col, nextRow, nextCol);
+                }
+                
             }
         }
     }

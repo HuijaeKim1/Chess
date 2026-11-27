@@ -1,4 +1,5 @@
 #pragma once
+#include "Piece.hpp"
 
 struct Move{
     int fromRow;
@@ -6,7 +7,9 @@ struct Move{
     int toRow;
     int toCol;
 
-    Move(int fr, int fc, int tr, int tc) : fromRow(fr), fromCol(fc), toRow(tr), toCol(tc){
+    PieceType promotion;
+
+    Move(int fr, int fc, int tr, int tc, PieceType p = PieceType::None) : fromRow(fr), fromCol(fc), toRow(tr), toCol(tc), promotion(p){
     }
 
     // Check if player's move is legal
@@ -14,6 +17,7 @@ struct Move{
         return fromRow == other.fromRow &&
                fromCol == other.fromCol &&
                toRow == other.toRow &&
-               toCol == other.toCol;
+               toCol == other.toCol &&
+               promotion == other.promotion;
     }
 };

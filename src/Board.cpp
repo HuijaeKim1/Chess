@@ -223,6 +223,10 @@ void Board::makeMove(const Move& move){
 
     }
 
+    // Handle pawn promotion
+    if (retrieve.type == PieceType::Pawn && move.promotion != PieceType::None){
+        retrieve.type = move.promotion;
+    }
 
     // Move the piece to the destination
     setPiece(move.toRow, move.toCol, retrieve);
