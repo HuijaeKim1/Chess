@@ -130,6 +130,16 @@ void MoveGenerator::generatePawnMoves(const Board& board, int row, int col, std:
                 }
                 
             }
+
+            // En Passant capture
+            else if (target.isEmpty() && nextRow == board.getEnPassantRow() && nextCol == board.getEnPassantCol()){
+
+                // Retrieve the adjacent piece and see if it's a pawn for en passant
+                Piece adjacent = board.getPiece(row, nextCol);
+                if (adjacent.type == PieceType::Pawn && adjacent.color != pawn.color){
+                    moves.emplace_back(row, col, nextRow, nextCol);
+                }
+            }
         }
     }
 }

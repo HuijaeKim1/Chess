@@ -21,6 +21,9 @@ private:
     bool blackCanCastleKingside = true;
     bool blackCanCastleQueenside = true;
 
+    int enPassantRow = -1;
+    int enPassantCol = -1;
+
 public:
     Board();
 
@@ -42,4 +45,7 @@ public:
 
     bool canCastleKingside(Color color) const;
     bool canCastleQueenside(Color color) const;
+
+    int getEnPassantRow() const;
+    int getEnPassantCol() const;
 };

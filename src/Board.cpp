@@ -1,6 +1,7 @@
 #include "Board.hpp"
 #include <iostream>
 #include <cctype>
+#include <cstdlib>
 using namespace std;
 
 
@@ -17,6 +18,9 @@ void Board::clear() {
     whiteCanCastleQueenside = false;
     blackCanCastleKingside = false;
     blackCanCastleQueenside = false;
+
+    enPassantRow = -1;
+    enPassantCol = -1;
 }
 
 void Board::reset() {
@@ -137,6 +141,25 @@ void Board::makeMove(const Move& move){
 
     Piece captured = getPiece(move.toRow, move.toCol);
 
+    // Handle en passant capture
+    if (retrieve.type == PieceType::Pawn && move.fromCol != move.toCol && move.toRow == enPassantRow
+        && move.toCol == enPassantCol && captured.isEmpty()){
+        
+        // Remove the captured pawn
+        setPiece(move.fromRow, move.toCol, Piece());
+    }
+
+    // Reset
+    enPassantRow = -1;
+    enPassantCol = -1;
+
+    // Detect double-sqaure pawn movement
+    if (retrieve.type == PieceType::Pawn && move.fromCol == move.toCol && abs(move.fromRow - move.toRow) == 2){
+        enPassantRow = (move.fromRow + move.toRow) / 2;
+        enPassantCol = move.fromCol; 
+    }
+
+
     // Update castling rights if the king moves
     if (retrieve.type == PieceType::King){
         if (retrieve.color == Color::White){
@@ -242,4 +265,12 @@ bool Board::canCastleKingside(Color color) const{
 
 bool Board::canCastleQueenside(Color color) const{
         return ((color == Color::White) ? whiteCanCastleQueenside : blackCanCastleQueenside);
+}
+
+int Board::getEnPassantRow() const{
+    return enPassantRow;
+}
+
+int Board::getEnPassantCol() const{
+    return enPassantCol;
 }
