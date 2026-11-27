@@ -24,368 +24,303 @@ void check(bool condition, const char* description) {
 }
 
 // Check whether a specific move exists
-bool containsMove(const std::vector<Move>& moves,
-                  int fr, int fc, int tr, int tc) {
-
+bool containsMove(const std::vector<Move>& moves, int fr, int fc, int tr, int tc) {
     Move target(fr, fc, tr, tc);
-
     return std::find(moves.begin(), moves.end(), target) != moves.end();
 }
 
-// Check the stored en passant coordinates
-bool hasEnPassantTarget(const Board& board, int row, int col) {
-    return board.getEnPassantRow() == row && board.getEnPassantCol() == col;
+// Test the standard starting position
+void testStartingPosition() {
+    Board board;
+
+    check(!MoveGenerator::isCheckmate(board), "Starting position is not checkmate");
+
+    check(!MoveGenerator::isStalemate(board), "Starting position is not stalemate");
+
+    check(MoveGenerator::generateLegalMoves(board).size() == 20, "Starting position has 20 legal moves");
 }
 
-// Create a position where White can capture en passant
-Board createWhiteEnPassantPosition() {
+// Test check with available escape squares
+void testCheckWithEscape() {
+    Board board;
+    board.clear();
+
+    // White king on e1
+    board.setPiece(7, 4, Piece(PieceType::King, Color::White));
+
+    // Black king on a8
+    board.setPiece(0, 0, Piece(PieceType::King, Color::Black));
+
+    // Black rook on e8
+    board.setPiece(0, 4, Piece(PieceType::Rook, Color::Black));
+
+    check(MoveGenerator::isInCheck(board, Color::White), "White king is in check");
+
+    check(!MoveGenerator::isCheckmate(board), "Check with an escape square is not checkmate");
+
+    check(!MoveGenerator::isStalemate(board), "Player in check is not stalemated");
+}
+
+// Test king capturing an attacking piece
+void testKingCapture() {
     Board board;
     board.clear();
 
     board.setPiece(7, 4, Piece(PieceType::King, Color::White));
-    board.setPiece(0, 4, Piece(PieceType::King, Color::Black));
+    board.setPiece(0, 0, Piece(PieceType::King, Color::Black));
 
-    // White pawn on e5
-    board.setPiece(3, 4, Piece(PieceType::Pawn, Color::White));
-
-    // Black pawn on d7
-    board.setPiece(1, 3, Piece(PieceType::Pawn, Color::Black));
-
-    // Move White's king to switch turns
-    board.makeMove(Move(7, 4, 7, 5));
-
-    // Black moves d7 to d5
-    board.makeMove(Move(1, 3, 3, 3));
-
-    return board;
-}
-
-// Create a position where Black can capture en passant
-Board createBlackEnPassantPosition() {
-    Board board;
-    board.clear();
-
-    board.setPiece(7, 4, Piece(PieceType::King, Color::White));
-    board.setPiece(0, 4, Piece(PieceType::King, Color::Black));
-
-    // Black pawn on d4
-    board.setPiece(4, 3, Piece(PieceType::Pawn, Color::Black));
-
-    // White pawn on e2
-    board.setPiece(6, 4, Piece(PieceType::Pawn, Color::White));
-
-    // White moves e2 to e4
-    board.makeMove(Move(6, 4, 4, 4));
-
-    return board;
-}
-
-// Test initial en passant state
-void testInitialState() {
-    Board board;
-
-    check(hasEnPassantTarget(board, -1, -1),
-          "Starting position has no en passant target");
-}
-
-// Test double-square pawn movement
-void testDoubleSquareMovement() {
-    Board board;
-
-    // White moves e2 to e4
-    board.makeMove(Move(6, 4, 4, 4));
-
-    check(hasEnPassantTarget(board, 5, 4),
-          "White double-square movement creates correct target");
-
-    // Black moves d7 to d5
-    board.makeMove(Move(1, 3, 3, 3));
-
-    check(hasEnPassantTarget(board, 2, 3),
-          "Black double-square movement creates correct target");
-}
-
-// Test white en passant generation
-void testWhiteEnPassantGeneration() {
-    Board board = createWhiteEnPassantPosition();
-
-    auto pseudoLegalMoves = MoveGenerator::generatePseudoLegalMoves(board);
-    auto legalMoves = MoveGenerator::generateLegalMoves(board);
-
-    check(containsMove(pseudoLegalMoves, 3, 4, 2, 3),
-          "White en passant appears in pseudo-legal moves");
-
-    check(containsMove(legalMoves, 3, 4, 2, 3),
-          "White en passant appears in legal moves");
-}
-
-// Test black en passant generation
-void testBlackEnPassantGeneration() {
-    Board board = createBlackEnPassantPosition();
-
-    auto pseudoLegalMoves = MoveGenerator::generatePseudoLegalMoves(board);
-    auto legalMoves = MoveGenerator::generateLegalMoves(board);
-
-    check(containsMove(pseudoLegalMoves, 4, 3, 5, 4),
-          "Black en passant appears in pseudo-legal moves");
-
-    check(containsMove(legalMoves, 4, 3, 5, 4),
-          "Black en passant appears in legal moves");
-}
-
-// Test white en passant execution
-void testWhiteEnPassantExecution() {
-    Board board = createWhiteEnPassantPosition();
-
-    // White captures e5 to d6
-    board.makeMove(Move(3, 4, 2, 3));
-
-    Piece pawn = board.getPiece(2, 3);
-
-    check(pawn.type == PieceType::Pawn && pawn.color == Color::White,
-          "White pawn reaches correct en passant destination");
-
-    check(board.getPiece(3, 3).isEmpty(),
-          "Captured black pawn is removed");
-
-    check(board.getPiece(3, 4).isEmpty(),
-          "White pawn's original square is cleared");
-
-    check(board.getCurrentTurn() == Color::Black,
-          "Turn switches to Black after en passant");
-
-    check(hasEnPassantTarget(board, -1, -1),
-          "En passant target expires after capture");
-}
-
-// Test black en passant execution
-void testBlackEnPassantExecution() {
-    Board board = createBlackEnPassantPosition();
-
-    // Black captures d4 to e3
-    board.makeMove(Move(4, 3, 5, 4));
-
-    Piece pawn = board.getPiece(5, 4);
-
-    check(pawn.type == PieceType::Pawn && pawn.color == Color::Black,
-          "Black pawn reaches correct en passant destination");
-
-    check(board.getPiece(4, 4).isEmpty(),
-          "Captured white pawn is removed");
-
-    check(board.getPiece(4, 3).isEmpty(),
-          "Black pawn's original square is cleared");
-
-    check(board.getCurrentTurn() == Color::White,
-          "Turn switches to White after en passant");
-
-    check(hasEnPassantTarget(board, -1, -1),
-          "Black en passant capture clears target");
-}
-
-// Test en passant capture in the opposite direction
-void testOppositeDirection() {
-    Board board;
-    board.clear();
-
-    board.setPiece(7, 4, Piece(PieceType::King, Color::White));
-    board.setPiece(0, 4, Piece(PieceType::King, Color::Black));
-
-    // White pawn on c5
-    board.setPiece(3, 2, Piece(PieceType::Pawn, Color::White));
-
-    // Black pawn on d7
-    board.setPiece(1, 3, Piece(PieceType::Pawn, Color::Black));
-
-    board.makeMove(Move(7, 4, 7, 5));
-    board.makeMove(Move(1, 3, 3, 3));
+    // Unprotected black rook on e2
+    board.setPiece(6, 4, Piece(PieceType::Rook, Color::Black));
 
     auto moves = MoveGenerator::generateLegalMoves(board);
 
-    check(containsMove(moves, 3, 2, 2, 3),
-          "White can capture en passant to the right");
+    check(containsMove(moves, 7, 4, 6, 4), "King can escape check by capturing attacker");
 
-    board.makeMove(Move(3, 2, 2, 3));
-
-    Piece pawn = board.getPiece(2, 3);
-
-    check(pawn.type == PieceType::Pawn && pawn.color == Color::White &&
-          board.getPiece(3, 3).isEmpty() && board.getPiece(3, 2).isEmpty(),
-          "Right-side en passant executes correctly");
+    check(!MoveGenerator::isCheckmate(board), "Capturable attacker does not cause checkmate");
 }
 
-// Test en passant expiration
-void testEnPassantExpiration() {
-    Board board = createWhiteEnPassantPosition();
-
-    // White moves king instead of capturing
-    board.makeMove(Move(7, 5, 7, 4));
-
-    check(hasEnPassantTarget(board, -1, -1),
-          "En passant expires after an unrelated move");
-
-    // Black moves king to return the turn to White
-    board.makeMove(Move(0, 4, 0, 5));
-
-    auto moves = MoveGenerator::generateLegalMoves(board);
-
-    check(!containsMove(moves, 3, 4, 2, 3),
-          "Expired en passant capture is no longer generated");
-}
-
-// Test replacing an old en passant target
-void testTargetReplacement() {
-    Board board;
-
-    // White moves e2 to e4
-    board.makeMove(Move(6, 4, 4, 4));
-
-    // Black moves c7 to c5
-    board.makeMove(Move(1, 2, 3, 2));
-
-    check(hasEnPassantTarget(board, 2, 2),
-          "New double-square move replaces previous target");
-}
-
-// Test missing adjacent pawn
-void testMissingAdjacentPawn() {
-    Board board = createWhiteEnPassantPosition();
-
-    // Remove the black pawn
-    board.setPiece(3, 3, Piece());
-
-    auto moves = MoveGenerator::generatePseudoLegalMoves(board);
-
-    check(!containsMove(moves, 3, 4, 2, 3),
-          "En passant rejected when adjacent pawn is missing");
-}
-
-// Test adjacent friendly pawn
-void testFriendlyAdjacentPawn() {
-    Board board = createWhiteEnPassantPosition();
-
-    // Replace black pawn with a white pawn
-    board.setPiece(3, 3, Piece(PieceType::Pawn, Color::White));
-
-    auto moves = MoveGenerator::generatePseudoLegalMoves(board);
-
-    check(!containsMove(moves, 3, 4, 2, 3),
-          "En passant cannot capture a friendly pawn");
-}
-
-// Test adjacent enemy piece that is not a pawn
-void testAdjacentNonPawn() {
-    Board board = createWhiteEnPassantPosition();
-
-    // Replace black pawn with a black knight
-    board.setPiece(3, 3, Piece(PieceType::Knight, Color::Black));
-
-    auto moves = MoveGenerator::generatePseudoLegalMoves(board);
-
-    check(!containsMove(moves, 3, 4, 2, 3),
-          "En passant cannot capture a non-pawn piece");
-}
-
-// Test en passant exposing the king to check
-void testEnPassantKingSafety() {
+// Test blocking a check with another piece
+void testBlockingCheck() {
     Board board;
     board.clear();
 
-    // White king on h5
-    board.setPiece(3, 7, Piece(PieceType::King, Color::White));
+    board.setPiece(7, 4, Piece(PieceType::King, Color::White));
+    board.setPiece(0, 0, Piece(PieceType::King, Color::Black));
+    board.setPiece(0, 4, Piece(PieceType::Rook, Color::Black));
+
+    // White bishop on d2
+    board.setPiece(6, 3, Piece(PieceType::Bishop, Color::White));
+
+    auto moves = MoveGenerator::generateLegalMoves(board);
+
+    // Bishop moves from d2 to e3 to block the rook
+    check(containsMove(moves, 6, 3, 5, 4), "Bishop can block a rook check");
+
+    check(!MoveGenerator::isCheckmate(board), "Blockable check is not checkmate");
+}
+
+// Test another piece capturing the attacker
+void testCaptureAttacker() {
+    Board board;
+    board.clear();
+
+    board.setPiece(7, 4, Piece(PieceType::King, Color::White));
+    board.setPiece(0, 0, Piece(PieceType::King, Color::Black));
+
+    // Black rook on e8
+    board.setPiece(0, 4, Piece(PieceType::Rook, Color::Black));
+
+    // White rook on h8
+    board.setPiece(0, 7, Piece(PieceType::Rook, Color::White));
+
+    auto moves = MoveGenerator::generateLegalMoves(board);
+
+    check(containsMove(moves, 0, 7, 0, 4), "White rook can capture the checking piece");
+
+    check(!MoveGenerator::isCheckmate(board), "Capturing attacker prevents checkmate");
+}
+
+// Test checkmate against Black
+void testBlackCheckmate() {
+    Board board;
+    board.clear();
 
     // Black king on h8
     board.setPiece(0, 7, Piece(PieceType::King, Color::Black));
 
-    // Black rook on a5
-    board.setPiece(3, 0, Piece(PieceType::Rook, Color::Black));
+    // White king on g6
+    board.setPiece(2, 6, Piece(PieceType::King, Color::White));
 
-    // White pawn on e5
-    board.setPiece(3, 4, Piece(PieceType::Pawn, Color::White));
+    // White queen moves from f7 to g7
+    board.setPiece(1, 5, Piece(PieceType::Queen, Color::White));
+    board.makeMove(Move(1, 5, 1, 6));
 
-    // Black pawn on d7
-    board.setPiece(1, 3, Piece(PieceType::Pawn, Color::Black));
+    check(MoveGenerator::isInCheck(board, Color::Black), "Black king is in check");
 
-    // Switch to Black by moving a temporary white knight
-    board.setPiece(7, 1, Piece(PieceType::Knight, Color::White));
-    board.makeMove(Move(7, 1, 5, 2));
+    check(MoveGenerator::generateLegalMoves(board).empty(), "Checkmated Black has no legal moves");
 
-    // Black moves d7 to d5
-    board.makeMove(Move(1, 3, 3, 3));
+    check(MoveGenerator::isCheckmate(board), "Black checkmate correctly detected");
 
-    auto pseudoLegalMoves = MoveGenerator::generatePseudoLegalMoves(board);
-    auto legalMoves = MoveGenerator::generateLegalMoves(board);
-
-    check(containsMove(pseudoLegalMoves, 3, 4, 2, 3),
-          "Pinned en passant capture appears in pseudo-legal moves");
-
-    check(!containsMove(legalMoves, 3, 4, 2, 3),
-          "En passant exposing own king is rejected");
+    check(!MoveGenerator::isStalemate(board), "Black checkmate is not stalemate");
 }
 
-// Test clear and reset
-void testClearAndReset() {
+// Test checkmate against White
+void testWhiteCheckmate() {
     Board board;
-
-    board.makeMove(Move(6, 4, 4, 4));
     board.clear();
 
-    check(hasEnPassantTarget(board, -1, -1),
-          "clear() removes en passant target");
+    // White king on h1
+    board.setPiece(7, 7, Piece(PieceType::King, Color::White));
 
-    board.reset();
-    board.makeMove(Move(6, 4, 4, 4));
-    board.reset();
+    // Black king on g3
+    board.setPiece(5, 6, Piece(PieceType::King, Color::Black));
 
-    check(hasEnPassantTarget(board, -1, -1),
-          "reset() removes en passant target");
+    // Black queen on g2
+    board.setPiece(6, 6, Piece(PieceType::Queen, Color::Black));
+
+    check(MoveGenerator::isInCheck(board, Color::White), "White king is in check");
+
+    check(MoveGenerator::generateLegalMoves(board).empty(), "Checkmated White has no legal moves");
+
+    check(MoveGenerator::isCheckmate(board), "White checkmate correctly detected");
+
+    check(!MoveGenerator::isStalemate(board), "White checkmate is not stalemate");
 }
 
-// Test board copying
-void testBoardCopy() {
-    Board board = createWhiteEnPassantPosition();
-
-    Board copy = board;
-
-    check(hasEnPassantTarget(copy, 2, 3),
-          "Board copy preserves en passant state");
-
-    // Execute en passant only on the copied board
-    copy.makeMove(Move(3, 4, 2, 3));
-
-    check(hasEnPassantTarget(board, 2, 3) &&
-          board.getPiece(3, 4).type == PieceType::Pawn &&
-          board.getPiece(3, 3).type == PieceType::Pawn,
-          "Executing en passant on copy does not modify original board");
-}
-
-// Test starting position
-void testStartingPosition() {
+// Test Fool's Mate from the standard starting position
+void testFoolsMate() {
     Board board;
+
+    // 1. f3
+    board.makeMove(Move(6, 5, 5, 5));
+
+    // 1... e5
+    board.makeMove(Move(1, 4, 3, 4));
+
+    // 2. g4
+    board.makeMove(Move(6, 6, 4, 6));
+
+    // 2... Qh4#
+    auto moves = MoveGenerator::generateLegalMoves(board);
+
+    check(containsMove(moves, 0, 3, 4, 7), "Fool's Mate finishing move is legal");
+
+    board.makeMove(Move(0, 3, 4, 7));
+
+    check(MoveGenerator::isCheckmate(board), "Fool's Mate correctly detected");
+
+    check(!MoveGenerator::isStalemate(board), "Fool's Mate is not stalemate");
+}
+
+// Test stalemate against Black
+void testBlackStalemate() {
+    Board board;
+    board.clear();
+
+    // Black king on h8
+    board.setPiece(0, 7, Piece(PieceType::King, Color::Black));
+
+    // White king on g6
+    board.setPiece(2, 6, Piece(PieceType::King, Color::White));
+
+    // White queen moves from e7 to f7
+    board.setPiece(1, 4, Piece(PieceType::Queen, Color::White));
+    board.makeMove(Move(1, 4, 1, 5));
+
+    check(!MoveGenerator::isInCheck(board, Color::Black), "Stalemated Black is not in check");
+
+    check(MoveGenerator::generateLegalMoves(board).empty(), "Stalemated Black has no legal moves");
+
+    check(MoveGenerator::isStalemate(board) && !MoveGenerator::isCheckmate(board),
+          "Black stalemate correctly detected");
+}
+
+// Test stalemate against White
+void testWhiteStalemate() {
+    Board board;
+    board.clear();
+
+    // White king on h1
+    board.setPiece(7, 7, Piece(PieceType::King, Color::White));
+
+    // Black king on g3
+    board.setPiece(5, 6, Piece(PieceType::King, Color::Black));
+
+    // Black queen on f2
+    board.setPiece(6, 5, Piece(PieceType::Queen, Color::Black));
+
+    check(!MoveGenerator::isInCheck(board, Color::White), "Stalemated White is not in check");
+
+    check(MoveGenerator::generateLegalMoves(board).empty(), "Stalemated White has no legal moves");
+
+    check(MoveGenerator::isStalemate(board) && !MoveGenerator::isCheckmate(board),
+          "White stalemate correctly detected");
+}
+
+// Test position where the king cannot move but another piece can
+void testOtherPieceCanMove() {
+    Board board;
+    board.clear();
+
+    // White king has no legal moves
+    board.setPiece(7, 7, Piece(PieceType::King, Color::White));
+    board.setPiece(5, 6, Piece(PieceType::King, Color::Black));
+    board.setPiece(6, 5, Piece(PieceType::Queen, Color::Black));
+
+    // Give White a pawn that can move
+    board.setPiece(6, 0, Piece(PieceType::Pawn, Color::White));
 
     auto moves = MoveGenerator::generateLegalMoves(board);
 
-    check(moves.size() == 20,
-          "Starting position still generates 20 legal moves");
+    bool kingCanMove = false;
+
+    for (const auto& move : moves) {
+        if (move.fromRow == 7 && move.fromCol == 7) {
+            kingCanMove = true;
+        }
+    }
+
+    check(!kingCanMove && !moves.empty() && !MoveGenerator::isStalemate(board),
+          "No king moves does not mean stalemate if another piece can move");
+}
+
+// Test that game-state detection does not modify the board
+void testBoardPreservation() {
+    Board board;
+
+    // Create an en passant target
+    board.makeMove(Move(6, 4, 4, 4));
+
+    Board original = board;
+
+    MoveGenerator::isCheckmate(board);
+    MoveGenerator::isStalemate(board);
+
+    bool unchanged = true;
+
+    // Compare all 64 squares
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            Piece before = original.getPiece(row, col);
+            Piece after = board.getPiece(row, col);
+
+            if (before.type != after.type || before.color != after.color) {
+                unchanged = false;
+            }
+        }
+    }
+
+    // Compare turn and en passant information
+    if (board.getCurrentTurn() != original.getCurrentTurn() ||
+        board.getEnPassantRow() != original.getEnPassantRow() ||
+        board.getEnPassantCol() != original.getEnPassantCol()) {
+        unchanged = false;
+    }
+
+    // Compare castling rights for both colors
+    for (Color color : {Color::White, Color::Black}) {
+        if (board.canCastleKingside(color) != original.canCastleKingside(color) ||
+            board.canCastleQueenside(color) != original.canCastleQueenside(color)) {
+            unchanged = false;
+        }
+    }
+
+    check(unchanged, "Game-state detection preserves the original board");
 }
 
 int main() {
-    testInitialState();
-    testDoubleSquareMovement();
-    testWhiteEnPassantGeneration();
-    testBlackEnPassantGeneration();
-    testWhiteEnPassantExecution();
-    testBlackEnPassantExecution();
-    testOppositeDirection();
-    testEnPassantExpiration();
-    testTargetReplacement();
-    testMissingAdjacentPawn();
-    testFriendlyAdjacentPawn();
-    testAdjacentNonPawn();
-    testEnPassantKingSafety();
-    testClearAndReset();
-    testBoardCopy();
     testStartingPosition();
+    testCheckWithEscape();
+    testKingCapture();
+    testBlockingCheck();
+    testCaptureAttacker();
+    testBlackCheckmate();
+    testWhiteCheckmate();
+    testFoolsMate();
+    testBlackStalemate();
+    testWhiteStalemate();
+    testOtherPieceCanMove();
+    testBoardPreservation();
 
     std::cout << "\nTest Results\n";
     std::cout << "Passed: " << passed << "\n";

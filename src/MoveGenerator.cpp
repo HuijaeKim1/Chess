@@ -501,3 +501,35 @@ std::vector<Move> MoveGenerator::generateLegalMoves(const Board& board){
 
     return legalMoves;
 }
+
+bool MoveGenerator::isCheckmate(const Board& board){
+    Color currentTurn = board.getCurrentTurn();
+
+    if (isInCheck(board, currentTurn)){
+        std::vector<Move> legalMoves = generateLegalMoves(board);
+
+        // If no legal moves are left, it's checkmate
+        if (legalMoves.empty()){
+            return true;
+        }
+    }
+
+    // Not checkmate
+    return false;
+}
+
+// Stalemate: king is not in check but there are no legal moves left
+bool MoveGenerator::isStalemate(const Board& board){
+    Color currentTurn = board.getCurrentTurn();
+
+    if (!isInCheck(board, currentTurn)){
+        std::vector<Move> legalMoves = generateLegalMoves(board);
+
+        if (legalMoves.empty()){
+            return true;
+        }
+    }
+
+    // Not in stalemate
+    return false;
+}

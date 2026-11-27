@@ -19,6 +19,10 @@ public:
     // Generate moves that do not leave the player's king in check
     static std::vector<Move> generateLegalMoves(const Board& board);
 
+    // Check if it's checkmate/stalemate
+    static bool isCheckmate(const Board& board);
+    static bool isStalemate(const Board& board);
+
 
 private:
     // Check whether coordinates are inside the board
@@ -44,4 +48,6 @@ private:
 
     // Generate king moves
     static void generateKingMoves(const Board& board, int row, int col, std::vector<Move>& moves);
+
+    
 };
